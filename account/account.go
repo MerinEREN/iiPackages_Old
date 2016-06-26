@@ -15,27 +15,30 @@ import (
 	"time"
 )
 
-type Accounts []Account
+// type Accounts []Account
 
 type Account struct {
-	Name          string    `datastore: "" json:"name"`
-	Company       Company   `datastore: "" json:"company"`
-	CurrentStatus string    `datastore: "" json:"current_status"`
-	AccountStatus string    `datastore: "" json:"account_status"`
-	About         string    `datastore: "" json:"about"`
-	Tags          Tags      `datastore: "" json:"tags"`
-	Ranks         Ranks     `datastore: "" json:"ranks"`
-	Card          Card      `datastore: "" json:"card" valid:"creditCard"`
-	Users         usr.Users `datastore: "-" json:"users"`
-	Registered    time.Time `datastore: "" json:"registered"`
-	LastModified  time.Time `datastore: "" json:"last_modified"`
+	Photo string `datastore: "" json:"photo"`
+	Name  string `datastore: "" json:"name"`
+	// Company       Company   `datastore: "-" json:"company"`
+	CurrentStatus string `datastore: "" json:"current_status"`
+	AccountStatus string `datastore: "" json:"account_status"`
+	About         string `datastore: "" json:"about"`
+	// Tags          Tags      `datastore: "-" json:"tags"`
+	// Ranks         Ranks     `datastore: "-" json:"ranks"`
+	// Cards         Cards     `datastore: "-" json:"card" valid:"creditCard"`
+	// Users         usr.Users `datastore: "-" json:"users"`
+	Registered   time.Time `datastore: "" json:"registered"`
+	LastModified time.Time `datastore: "" json:"last_modified"`
 }
 
 type Company struct {
-	Name    string  `datastore: "" json:"name"`
-	Type    string  `datastore: "" json:"type"`
-	Address Address `datastore: "" json:"address"`
+	Name string `datastore: "" json:"name"`
+	Type string `datastore: "" json:"type"`
+	// Addresses Addresses `datastore: "-" json:"addresses"`
 }
+
+// type Addresses []Address
 
 type Address struct {
 	Description string      `datastore: "" json:"description"`
@@ -51,24 +54,26 @@ type Geolocation struct {
 	Long string `datastore: "" json:"Long"` // type could be differnt !!!
 }
 
-type Tags []Tag
+// type Tags []Tag
 
 type Tag struct {
-	Value string `datastore: "" json:"value"`
+	ID     string            `datastore: "" json:"id"`
+	Values map[string]string `datastore: "" json:"values"`
 }
 
-type Ranks []Rank
+// type Ranks []Rank
 
 type Rank struct {
-	Value string `datastore: "" json:"value"`
+	ID     string            `datastore: "" json:"id"`
+	Values map[string]string `datastore: "" json:"values"`
 }
 
-type Card struct {
-	CreditCards CreditCards `datastore: "" json:"creditCards"`
-	DebitCards  DebitCards  `datastore: "" json:"debitCards"`
-}
+// type Cards struct {
+// CreditCards CreditCards `datastore: "" json:"creditCards"`
+// DebitCards  DebitCards  `datastore: "" json:"debitCards"`
+// }
 
-type CreditCards []CreditCard
+// type CreditCards []CreditCard
 
 type CreditCard struct {
 	HolderName string `datastore: "" json:"holder_name"`
@@ -78,7 +83,7 @@ type CreditCard struct {
 	CVV        string `datastore: "" json:"cvv"`
 }
 
-type DebitCards []DebitCard
+// type DebitCards []DebitCard
 
 type DebitCard struct {
 	HolderName string `datastore: "" json:"holder_name"`
@@ -88,7 +93,7 @@ type DebitCard struct {
 	CVV        string `datastore: "" json:"cvv"`
 }
 
-type Doc interface {
+type Entity interface {
 	// Use this for all structs
 	// Update()
 	// Upsert()
@@ -108,6 +113,7 @@ func Create(r *http.Request) (acc *Account, u *usr.User, err error) {
 		return
 	} */
 	ctx := appengine.NewContext(r)
+	// FIND A BETTER WAY TO SET ACCOUNT NAME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	q := datastore.NewQuery("Accounts")
 	var accCount int
 	accCount, err = q.Count(ctx)
@@ -116,6 +122,7 @@ func Create(r *http.Request) (acc *Account, u *usr.User, err error) {
 	}
 	accCount++
 	acc = &Account{
+		Photo:         "matrix.gif", // add here a generic avatar
 		Name:          "Account_" + strconv.Itoa(accCount),
 		CurrentStatus: "available",
 		AccountStatus: "online",

@@ -11,6 +11,7 @@ var (
 	templates          = template.Must(template.ParseGlob("static/templates/*.html"))
 	RenderIndex        = renderTemplate("index")
 	RenderAccount      = renderTemplate("account")
+	RenderRoles        = renderTemplate("roles")
 	RenderUserSettings = renderTemplate("userSettings")
 	// RenderAccounts     = renderTemplate("accounts")
 	// RenderSignUp   = renderTemplate("signUp")
