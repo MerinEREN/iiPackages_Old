@@ -21,12 +21,15 @@ func Get(r *http.Request, ks []*datastore.Key) (roles Roles, err error) {
 }
 
 // MAKE THIS MULTI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-func Put(r *http.Request) error {
+func Put(r *http.Request) (*datastore.Key, error) {
 	ctx := appengine.NewContext(r)
-	key := datastore.NewIncompleteKey(ctx, "Roles", nil)
 	role := new(Role)
-	role.ID = r.PostFormValue("role")
-	role.Values[r.PostFormValue("lang")] = r.PostFormValue("role")
-	_, err := datastore.Put(ctx, key, nil)
+	if r.PostFormValue("roleLang") == "en_us" {
+		role.ID = r.PostFormValue("roleValue")
+		key := datastore.NewKey(ctx, "Roles", role.ID, 0, nil)
+	}
+	role.Values[r.PostFormValue("roleLang")] =
+		r.PostFormValue(r.PostFormValue(roleValue))
+	_, err := datastore.Put(ctx, key, role)
 	return err
 }

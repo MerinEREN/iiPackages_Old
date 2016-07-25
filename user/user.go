@@ -35,7 +35,9 @@ type User struct {
 	Photo    string `datastore: "" json:"photo"`
 	Name     Name   `datastore: "" json:"name"`
 	// Phones    Phones `datastore: "" json:"phones"`
+	// Online, offline, frozen
 	Status       string           `datastore: "" json:"status"`
+	Type         string           `datastore: "" json:"type"`
 	Roles        []*datastore.Key `datastore: "" json:"roles"`
 	BirthDate    time.Time        `datastore: "" json:"birth_date"`
 	Registered   time.Time        `datastore: "" json:"registered"`
@@ -46,6 +48,24 @@ type User struct {
 	// Offers Offers `datastore: "-" json:"offers""`
 	// ServicePacks ServicePacks `datastore: "-" json:"service_packs""`
 	PurchasedServices []string `datastore: "-" json:"purchased_srvices"`
+}
+
+func (u User) IsAdmin() bool {
+	for _, k := range u.Roles {
+		if k.StringID() == "admin" {
+			return true
+		}
+	}
+	return false
+}
+
+func (u User) IsContentEditor() bool {
+	for _, k := range u.Roles {
+		if k.StringID() == "contentEditor" {
+			return true
+		}
+	}
+	return false
 }
 
 type Name struct {
