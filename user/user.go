@@ -1,3 +1,10 @@
+/*
+Every package should have a package comment, a block comment preceding the package clause.
+For multi-file packages, the package comment only needs to be present in one file, and any
+one will do. The package comment should introduce the package and provide information
+relevant to the package as a whole. It will appear first on the godoc page and should set
+up the detailed documentation that follows.
+*/
 package user
 
 import (
@@ -17,6 +24,12 @@ import (
 	"time"
 )
 
+/*
+Go's declaration syntax allows grouping of declarations. A single doc comment can introduce
+a group of related constants or variables. Since the whole declaration is presented, such
+a comment can often be perfunctory.
+*/
+// Error codes returnd by Add and Exist funcs.
 var (
 	EmailNotExist   = errors.New("Email Not Exist")
 	ExistingEmail   = errors.New("Existing Email")
@@ -50,7 +63,7 @@ type User struct {
 	PurchasedServices []string `datastore: "-" json:"purchased_srvices"`
 }
 
-func (u User) IsAdmin() bool {
+func (u *User) IsAdmin() bool {
 	for _, k := range u.Roles {
 		if k.StringID() == "admin" {
 			return true
@@ -59,7 +72,7 @@ func (u User) IsAdmin() bool {
 	return false
 }
 
-func (u User) IsContentEditor() bool {
+func (u *User) IsContentEditor() bool {
 	for _, k := range u.Roles {
 		if k.StringID() == "contentEditor" {
 			return true

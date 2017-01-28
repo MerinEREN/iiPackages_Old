@@ -19,11 +19,11 @@ type SessionData struct {
 }
 
 // ADDING UUID AND HASH TO THE COOKIE AND CHECK HASH CODE
-func Set(w http.ResponseWriter, r *http.Request, s, uuid string) (err error) {
+func Set(w http.ResponseWriter, r *http.Request, s, uuid string) error {
 	// COOKIE IS A PART OF THE HEADER, SO U SHOULD SET THE COOKIE BEFORE EXECUTING A
 	// TEMPLATE OR WRITING SOMETHING TO THE BODY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	c, errC := r.Cookie(s)
-	if errC == http.ErrNoCookie {
+	c, err := r.Cookie(s)
+	if err == http.ErrNoCookie {
 		c, err = create(s, uuid)
 	} else {
 		if isUserDataChanged(c) {
@@ -33,9 +33,8 @@ func Set(w http.ResponseWriter, r *http.Request, s, uuid string) (err error) {
 			c, err = create(s, uuid)
 		}
 	}
-	// CREATING A COOKIE IS NOT ENOUGH, YOU HAVE TO SET THE COOKIE TO USE IT !!!!!!!!!!
 	http.SetCookie(w, c)
-	return
+	return err
 }
 
 func create(s, uuid string) (c *http.Cookie, err error) {
@@ -120,11 +119,6 @@ func decodeThanUnmarshall(cd string) *SessionData {
 		log.Printf("Cookie data unmarshaling error. %v\n", err)
 	}
 	return &cookieData
-}
-
-func IsExists(r *http.Request, s string) bool {
-	_, err := r.Cookie(s)
-	return !(err == http.ErrNoCookie)
 }
 
 func GetHmac(i interface{}) string {

@@ -64,10 +64,11 @@ type Footer struct {
 } */
 
 type D struct {
-	User     *usr.User        `datastore:"-" json:"user"`
-	Account  *account.Account `datastore:"-" json:"account"`
-	LoginURL string           `datastore:"-" json:"login_url"`
-	URLUUID  string           `datastore:"-" json:"url_uuid"`
+	User      *usr.User        `datastore:"-" json:"user"`
+	Account   *account.Account `datastore:"-" json:"account"`
+	LoginURL  string           `datastore:"-" json:"login_url"`
+	LogoutURL string           `datastore:"-" json:"logout_url"`
+	URLUUID   string           `datastore:"-" json:"url_uuid"`
 }
 
 /* func (p *page) save() error {
