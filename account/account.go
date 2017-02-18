@@ -9,103 +9,21 @@ package account
 
 import (
 	// "fmt"
-	"google.golang.org/appengine"
+	"errors"
+	"golang.org/x/net/context"
+	// "google.golang.org/appengine"
 	// "cookie"
 	usr "github.com/MerinEREN/iiPackages/user"
-	// valid "github.com/asaskevich/govalidator"
-	// "google.golang.org/appengine/user"
+	valid "github.com/asaskevich/govalidator"
+	"google.golang.org/appengine/user"
 	// "github.com/nu7hatch/gouuid"
 	"google.golang.org/appengine/datastore"
 	// "log"
-	"net/http"
+	// "net/http"
 	"strconv"
+	"strings"
 	"time"
 )
-
-// type Accounts []Account
-
-type Account struct {
-	Photo string `datastore: "" json:"photo"`
-	Name  string `datastore: "" json:"name"`
-	// Company       Company   `datastore: "-" json:"company"`
-	CurrentStatus string `datastore: "" json:"current_status"`
-	AccountStatus string `datastore: "" json:"account_status"`
-	About         string `datastore: "" json:"about"`
-	// Tags          Tags      `datastore: "-" json:"tags"`
-	// Ranks         Ranks     `datastore: "-" json:"ranks"`
-	// Cards         Cards     `datastore: "-" json:"card" valid:"creditCard"`
-	// Users         usr.Users `datastore: "-" json:"users"`
-	Registered   time.Time `datastore: "" json:"registered"`
-	LastModified time.Time `datastore: "" json:"last_modified"`
-}
-
-type Company struct {
-	Name string `datastore: "" json:"name"`
-	Type string `datastore: "" json:"type"`
-	// Addresses Addresses `datastore: "-" json:"addresses"`
-}
-
-// type Addresses []Address
-
-type Address struct {
-	Description string      `datastore: "" json:"description"`
-	Borough     string      `datastore: "" json:"borough"`
-	City        string      `datastore: "" json:"city"`
-	Country     string      `datastore: "" json:"country"`
-	Postcode    string      `datastore: "" json:"postcode"`
-	Geolocation Geolocation `datastore: "" json:"geolocation"`
-}
-
-type Geolocation struct {
-	Lat  string `datastore: "" json:"lat"`  // type could be differnt !!!
-	Long string `datastore: "" json:"Long"` // type could be differnt !!!
-}
-
-// type Tags []Tag
-
-type Tag struct {
-	ID     string            `datastore: "" json:"id"`
-	Values map[string]string `datastore: "" json:"values"`
-}
-
-// type Ranks []Rank
-
-type Rank struct {
-	ID     string            `datastore: "" json:"id"`
-	Values map[string]string `datastore: "" json:"values"`
-}
-
-// type Cards struct {
-// CreditCards CreditCards `datastore: "" json:"creditCards"`
-// DebitCards  DebitCards  `datastore: "" json:"debitCards"`
-// }
-
-// type CreditCards []CreditCard
-
-type CreditCard struct {
-	HolderName string `datastore: "" json:"holder_name"`
-	No         string `datastore: "" json:"no"`
-	ExpMonth   string `datastore: "" json:"exp_month"`
-	ExpYear    string `datastore: "" json:"exp_year"`
-	CVV        string `datastore: "" json:"cvv"`
-}
-
-// type DebitCards []DebitCard
-
-type DebitCard struct {
-	HolderName string `datastore: "" json:"holder_name"`
-	No         string `datastore: "" json:"no"`
-	ExpMonth   string `datastore: "" json:"exp_month"`
-	ExpYear    string `datastore: "" json:"exp_year"`
-	CVV        string `datastore: "" json:"cvv"`
-}
-
-type Entity interface {
-	// Use this for all structs
-	// Update()
-	// Upsert()
-	// Delete()
-}
 
 /*
 Inside a package, any comment immediately preceding a top-level declaration serves as a
@@ -117,49 +35,72 @@ name being declared.
 */
 // Compile parses a regular expression and returns, if successful,
 // a Regexp that can be used to match against text.
-func Create(r *http.Request) (acc *Account, u *usr.User, err error) {
-	/* k = "password"
-	password := r.PostFormValue(k)
-	if !valid.IsEmail(email) {
-		err = usr.InvalidEmail
-		return
-	} */
+func Create(ctx context.Context) (acc *Account, u *usr.User, uK *datastore.Key,
+	err error) {
 	// CAHANGE THIS CONTROL AND ALLOW SPECIAL CHARACTERS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	/* if !valid.IsAlphanumeric(password) {
 		err = usr.InvalidPassword
 		return
 	} */
-	ctx := appengine.NewContext(r)
-	// FIND A BETTER WAY TO SET ACCOUNT NAME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	q := datastore.NewQuery("Accounts")
-	var accCount int
-	accCount, err = q.Count(ctx)
+	var accKeyName string
+	key := new(datastore.Key)
+	q := datastore.NewQuery("Account").Order("-Registered").KeysOnly()
+	it := q.Run(ctx)
+	key, err = it.Next(nil)
 	if err != nil {
-		return
+		if err == datastore.Done {
+			accKeyName = "Account_1"
+		} else {
+			return
+		}
+	} else {
+		s := strings.SplitAfter(key.StringID(), "_")
+		var i int
+		i, err = strconv.Atoi(s[1])
+		if err != nil {
+			return
+		}
+		i = i + 1
+		accKeyName = s[0] + strconv.Itoa(i)
 	}
-	accCount++
 	acc = &Account{
+		Name:          accKeyName,
 		Photo:         "matrix.gif", // add here a generic avatar
-		Name:          "Account_" + strconv.Itoa(accCount),
 		CurrentStatus: "available",
 		AccountStatus: "online",
 		Registered:    time.Now(),
 		LastModified:  time.Now(),
 	}
-	key := datastore.NewIncompleteKey(ctx, "Accounts", nil)
-	// fmt.Println(key)
-	var parentKey *datastore.Key
-	parentKey, err = datastore.Put(ctx, key, acc)
-	// fmt.Println(parentKey)
+	key = datastore.NewKey(ctx, "Account", accKeyName, 0, nil)
+	_, err = datastore.Put(ctx, key, acc)
 	if err != nil {
 		return
 	}
-	u, err = usr.Add(r, parentKey)
+	ug := user.Current(ctx)
+	email := ug.Email
+	// Email validation control not necessary actually.
+	if !valid.IsEmail(email) {
+		err = usr.ErrInvalidEmail
+		return
+	}
+	u, uK, err = usr.New(ctx, key, email, "admin")
 	if err != nil {
-		// DELETE CREATED ACCOUNT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if errD := Delete(ctx, key); errD != nil {
+			err = errors.New(err.Error() + errD.Error())
+		}
 		return
 	}
 	return
+}
+
+func Get(ctx context.Context, keyName string) (acc *Account, err error) {
+	// err = datastore.Get(ctx, key, acc)
+	return
+}
+
+func Delete(ctx context.Context, k *datastore.Key) error {
+	err := datastore.Delete(ctx, k)
+	return err
 }
 
 /* func AddTags(s ...string) bool {

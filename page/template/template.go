@@ -9,19 +9,29 @@ import (
 )
 
 var (
-	html        = template.Must(template.ParseFiles("../iiClient/src/index.html"))
-	RenderIndex = renderTemplate("index")
+	html = template.Must(template.ParseFiles("../iiClient/public/index.html"))
+	// RenderIndex      = renderTemplate("index")
+	TemplateRendered = false
 )
 
-func renderTemplate(title string) func(w http.ResponseWriter, p *content.Page) {
-	return func(w http.ResponseWriter, p *content.Page) {
-		if title == "index" {
-			err := html.Execute(w, p)
+func RenderIndex(w http.ResponseWriter, pc *content.Page) {
+	err := html.Execute(w, pc)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Fatalln(err)
+	}
+	TemplateRendered = true
+}
+
+/* func renderTemplate(page string) func(w http.ResponseWriter, pc *content.Page) {
+	return func(w http.ResponseWriter, pc *content.Page) {
+		if page == "index" {
+			err := html.Execute(w, pc)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				log.Fatalln(err)
 			}
 		}
-
+		TemplateRendered = true
 	}
-}
+} */

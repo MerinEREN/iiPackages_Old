@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	// "github.com/MerinEREN/iiPackages/user"
@@ -13,33 +14,39 @@ import (
 	"strings"
 )
 
+// Cookie error variables
+var (
+	ErrCorruptedCookie = errors.New("Cookie data corrupted")
+)
+
 // CHANGE THIS DUMMY COOKIE STRUCT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 type SessionData struct {
 	Photo string
 }
 
-// ADDING UUID AND HASH TO THE COOKIE AND CHECK HASH CODE
-func Set(w http.ResponseWriter, r *http.Request, s, uuid string) error {
+// Adding uuid and hash to the cookie and check hash code
+func Set(w http.ResponseWriter, r *http.Request, uuid string) error {
 	// COOKIE IS A PART OF THE HEADER, SO U SHOULD SET THE COOKIE BEFORE EXECUTING A
 	// TEMPLATE OR WRITING SOMETHING TO THE BODY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	c, err := r.Cookie(s)
+	c, err := r.Cookie(r.URL.Path)
 	if err == http.ErrNoCookie {
-		c, err = create(s, uuid)
+		c, err = create(r.URL.Path, uuid)
+		http.SetCookie(w, c)
 	} else {
 		if isUserDataChanged(c) {
 			// DELETING CORRUPTED COOKIE AND CREATING NEW ONE !!!!!!!!!!!!!!!!!
-			c.MaxAge = -1
+			Delete(w, r)
+			c, _ = create(r.URL.Path, uuid)
 			http.SetCookie(w, c)
-			c, err = create(s, uuid)
+			err = ErrCorruptedCookie
 		}
 	}
-	http.SetCookie(w, c)
 	return err
 }
 
-func create(s, uuid string) (c *http.Cookie, err error) {
+func create(p, uuid string) (c *http.Cookie, err error) {
 	c = &http.Cookie{
-		Name: s,
+		Name: p,
 		// U CAN USE UUID AS VALUE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		Value: uuid,
 		// NOT GOOD PRACTICE
@@ -58,6 +65,19 @@ func create(s, uuid string) (c *http.Cookie, err error) {
 	}
 	err = setValue(c)
 	return
+}
+
+func Delete(w http.ResponseWriter, r *http.Request) error {
+	c, err := r.Cookie(r.URL.Path)
+	if err == http.ErrNoCookie {
+		return err
+	}
+	c.MaxAge = -1
+	// If path is different can't delete cookie without cookie's path.
+	// Maybe should use cookie path even paths are same.
+	c.Path = r.URL.Path
+	http.SetCookie(w, c)
+	return err
 }
 
 // Setting different kind of struct for different cookies
@@ -98,8 +118,8 @@ func isUserDataChanged(c *http.Cookie) bool {
 }
 
 // MAKE GENERIC RETURN TYPE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-func GetData(r *http.Request, s string) (*SessionData, error) {
-	c, err := r.Cookie(s)
+func GetData(r *http.Request) (*SessionData, error) {
+	c, err := r.Cookie(r.URL.Path)
 	if err == http.ErrNoCookie {
 		return &SessionData{}, err
 	}

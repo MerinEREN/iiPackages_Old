@@ -9,6 +9,7 @@ import (
 	usr "github.com/MerinEREN/iiPackages/user"
 	// "io/ioutil"
 	//"net/http"
+	// "log"
 )
 
 // II Language and page Sturcts
@@ -64,11 +65,10 @@ type Footer struct {
 } */
 
 type D struct {
-	User      *usr.User        `datastore:"-" json:"user"`
-	Account   *account.Account `datastore:"-" json:"account"`
-	LoginURL  string           `datastore:"-" json:"login_url"`
-	LogoutURL string           `datastore:"-" json:"logout_url"`
-	URLUUID   string           `datastore:"-" json:"url_uuid"`
+	User     *usr.User        `datastore:"-" json:"user"`
+	Account  *account.Account `datastore:"-" json:"account"`
+	LoginURL string           `datastore:"-" json:"login_url"`
+	URLUUID  string           `datastore:"-" json:"url_uuid"`
 }
 
 /* func (p *page) save() error {
@@ -86,7 +86,7 @@ func Get(ctx context.Context, title string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	} */
-	// IF PAGE ON MEMCACHE GET FROM THERE, OTHERWISE GET FROM DATASTORE =) !!!!!!!!!!!!
+	// If page on memcache get from there, otherwise get from datastore.
 	p := new(Page)
 	pageItem, err := memcache.Get(ctx, title)
 	if err == memcache.ErrCacheMiss {
@@ -94,16 +94,17 @@ func Get(ctx context.Context, title string) (*Page, error) {
 			Title: title,
 		}
 		p.C = content
-		bs, err1 := json.Marshal(p)
-		if err1 != nil {
-			return p, err1
+		var bs []byte
+		bs, err = json.Marshal(p)
+		if err != nil {
+			return nil, err
 		}
 		pageItem = &memcache.Item{
 			Key:   title,
 			Value: bs,
 		}
-		if err2 := memcache.Set(ctx, pageItem); err2 != nil {
-			return p, err2
+		if err = memcache.Set(ctx, pageItem); err != nil {
+			return nil, err
 		}
 	} else {
 		err = json.Unmarshal(pageItem.Value, p)
