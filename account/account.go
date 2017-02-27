@@ -93,9 +93,26 @@ func Create(ctx context.Context) (acc *Account, u *usr.User, uK *datastore.Key,
 	return
 }
 
-func Get(ctx context.Context, keyName string) (acc *Account, err error) {
-	// err = datastore.Get(ctx, key, acc)
-	return
+func Get(ctx context.Context, k interface{}) (*Account, error) {
+	acc := new(Account)
+	var err error
+	switch v := k.(type) {
+	case string:
+		// Do some projection here if needed
+		q := datastore.NewQuery("Account").Filter("KeyName =", v)
+		it := q.Run(ctx)
+		_, err = it.Next(acc)
+	case *datastore.Key:
+		err = datastore.Get(ctx, v, acc)
+	}
+	if err == datastore.Done {
+		return acc, err
+	}
+	if err != nil {
+		err = ErrFindAccount
+		return nil, err
+	}
+	return acc, nil
 }
 
 func Delete(ctx context.Context, k *datastore.Key) error {

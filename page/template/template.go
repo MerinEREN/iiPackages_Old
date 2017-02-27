@@ -11,7 +11,6 @@ import (
 var (
 	html = template.Must(template.ParseFiles("../iiClient/public/index.html"))
 	// RenderIndex      = renderTemplate("index")
-	TemplateRendered = false
 )
 
 func RenderIndex(w http.ResponseWriter, pc *content.Page) {
@@ -20,7 +19,6 @@ func RenderIndex(w http.ResponseWriter, pc *content.Page) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Fatalln(err)
 	}
-	TemplateRendered = true
 }
 
 /* func renderTemplate(page string) func(w http.ResponseWriter, pc *content.Page) {

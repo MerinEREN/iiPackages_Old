@@ -15,7 +15,7 @@ import (
 	// "github.com/MerinEREN/iiPackages/page/content"
 	// "github.com/MerinEREN/iiPackages/page/template"
 	// usr "github.com/MerinEREN/iiPackages/user"
-	"google.golang.org/appengine"
+	// "google.golang.org/appengine"
 	// "google.golang.org/appengine/datastore"
 	// "google.golang.org/appengine/memcache"
 	"google.golang.org/appengine/user"
@@ -25,11 +25,11 @@ import (
 	// "mime/multipart"
 	"net/http"
 	// "regexp"
+	"golang.org/x/net/context"
 	// "time"
 )
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *user.User) {
 	url, err := user.LogoutURL(ctx, "/")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -12,22 +12,17 @@ import (
 	// "fmt"
 	"github.com/MerinEREN/iiPackages/account"
 	usr "github.com/MerinEREN/iiPackages/user"
-	"google.golang.org/appengine"
+	// "google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/user"
 	// "io/ioutil"
+	"golang.org/x/net/context"
 	"log"
 	// "mime/multipart"
 	"net/http"
 )
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-	// remove ctx and ug
-	ctx := appengine.NewContext(r)
-	ug := user.Current(ctx)
-	if ug == nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-	}
+func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *user.User) {
 	u, uKey, err := usr.Get(ctx, ug.Email)
 	if err == usr.ErrFindUser {
 		log.Printf("Path: %s, Error: %v\n", r.URL.Path, err)

@@ -14,10 +14,11 @@ import (
 	api "github.com/MerinEREN/iiPackages/apis"
 	// "github.com/MerinEREN/iiPackages/page/content"
 	usr "github.com/MerinEREN/iiPackages/user"
-	"google.golang.org/appengine"
+	// "google.golang.org/appengine"
 	// "google.golang.org/appengine/datastore"
 	// "google.golang.org/appengine/memcache"
-	// "google.golang.org/appengine/user"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/user"
 	// "io/ioutil"
 	// "html/template"
 	"log"
@@ -27,9 +28,7 @@ import (
 	// "time"
 )
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-	// remove ctx
-	ctx := appengine.NewContext(r)
+func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *user.User) {
 	wb := new(api.ResponseBody)
 	accName := r.URL.Path[len("/accounts/"):]
 	log.Printf("Selected account is: %s\n", accName)

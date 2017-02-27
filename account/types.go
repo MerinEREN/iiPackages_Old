@@ -1,8 +1,15 @@
 package account
 
 import (
-	"github.com/MerinEREN/iiPackages/user"
+	"errors"
+	// "github.com/MerinEREN/iiPackages/user"
 	"time"
+)
+
+// Errors
+var (
+	ErrPutAccount  = errors.New("Error while putting account into the datastore.")
+	ErrFindAccount = errors.New("Error while getting account.")
 )
 
 // type Accounts []Account
@@ -17,9 +24,9 @@ type Account struct {
 	// Tags          Tags      `datastore: "-" json:"tags"`
 	// Ranks         Ranks     `datastore: "-" json:"ranks"`
 	// Cards         Cards     `datastore: "-" json:"card" valid:"creditCard"`
-	Users        user.Users `datastore: "-" json:"users"`
-	Registered   time.Time  `datastore: "" json:"registered"`
-	LastModified time.Time  `datastore: "" json:"last_modified"`
+	// Users        user.Users `datastore: "-" json:"users"`
+	Registered   time.Time `datastore: "" json:"registered"`
+	LastModified time.Time `datastore: "" json:"last_modified"`
 }
 
 type Company struct {

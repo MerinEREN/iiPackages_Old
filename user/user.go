@@ -80,7 +80,7 @@ func Get(ctx context.Context, email string) (*User, *datastore.Key, error) {
 	// BUG !!!!! If i made this function as naked return "it.Next" fails because of "u"
 	k, err := it.Next(u)
 	if err == datastore.Done {
-		return nil, nil, err
+		return u, k, err
 	}
 	if err != nil {
 		err = ErrFindUser

@@ -28,10 +28,12 @@ type SessionData struct {
 func Set(w http.ResponseWriter, r *http.Request, uuid string) error {
 	// COOKIE IS A PART OF THE HEADER, SO U SHOULD SET THE COOKIE BEFORE EXECUTING A
 	// TEMPLATE OR WRITING SOMETHING TO THE BODY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	c, err := r.Cookie(r.URL.Path)
+	cName := "cookie:" + r.URL.Path
+	c, err := r.Cookie(cName)
 	if err == http.ErrNoCookie {
-		c, err = create(r.URL.Path, uuid)
+		c, err = create(cName, uuid)
 		http.SetCookie(w, c)
+		log.Printf("Name: %v, Cookie: %v, Error: %v\n", cName, c, err)
 	} else {
 		if isUserDataChanged(c) {
 			// DELETING CORRUPTED COOKIE AND CREATING NEW ONE !!!!!!!!!!!!!!!!!
@@ -83,8 +85,7 @@ func Delete(w http.ResponseWriter, r *http.Request) error {
 // Setting different kind of struct for different cookies
 func setValue(c *http.Cookie) (err error) {
 	var cd interface{}
-	switch c.Name {
-	case "session":
+	if strings.Contains(c.Name, "/") {
 		cd = SessionData{
 			Photo: "img/MKA.jpg",
 		}

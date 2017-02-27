@@ -2,11 +2,11 @@ package content
 
 import (
 	"encoding/json"
-	"github.com/MerinEREN/iiPackages/account"
+	// "github.com/MerinEREN/iiPackages/account"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/memcache"
 	// "github.com/MerinEREN/iiPackages/cookie"
-	usr "github.com/MerinEREN/iiPackages/user"
+	// usr "github.com/MerinEREN/iiPackages/user"
 	// "io/ioutil"
 	//"net/http"
 	// "log"
@@ -65,10 +65,6 @@ type Footer struct {
 } */
 
 type D struct {
-	User     *usr.User        `datastore:"-" json:"user"`
-	Account  *account.Account `datastore:"-" json:"account"`
-	LoginURL string           `datastore:"-" json:"login_url"`
-	URLUUID  string           `datastore:"-" json:"url_uuid"`
 }
 
 /* func (p *page) save() error {
@@ -94,8 +90,7 @@ func Get(ctx context.Context, title string) (*Page, error) {
 			Title: title,
 		}
 		p.C = content
-		var bs []byte
-		bs, err = json.Marshal(p)
+		bs, err := json.Marshal(p)
 		if err != nil {
 			return nil, err
 		}

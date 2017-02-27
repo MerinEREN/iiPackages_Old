@@ -13,14 +13,15 @@ import (
 	// "github.com/MerinEREN/iiPackages/account"
 	// usr "github.com/MerinEREN/iiPackages/user"
 	// "google.golang.org/appengine"
-	// "google.golang.org/appengine/user"
+	"google.golang.org/appengine/user"
 	// "io/ioutil"
+	"golang.org/x/net/context"
 	// "log"
 	// "mime/multipart"
 	"net/http"
 )
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *user.User) {
 	/* u, uKey, err := usr.Exist(ctx, ug.Email)
 	if err == usr.FindUserError {
 		log.Printf("Error while login user: %v\n", err)
