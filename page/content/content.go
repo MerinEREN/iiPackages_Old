@@ -2,110 +2,65 @@ package content
 
 import (
 	"encoding/json"
-	// "github.com/MerinEREN/iiPackages/account"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/memcache"
-	// "github.com/MerinEREN/iiPackages/cookie"
-	// usr "github.com/MerinEREN/iiPackages/user"
 	// "io/ioutil"
-	//"net/http"
 	// "log"
 )
 
-// II Language and page Sturcts
-// Languages colection
-// STORE ALL OF THOSE IN TO THE DATASTORE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-type Languages []Language
-
-type Language struct {
-	// MAYBE I SHOULD USE []byte INSTEAD OS string TYPE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	Id    string `datastore:"" json:"id"` // EN, TR ...
-	Pages Pages  `datastore:"-" json:"pages"`
-}
-
-type Pages []Page
-
-type Page struct {
-	C C `datastore:"-" json:"content"`
-	D D `datastore:"-" json:"data"`
-}
-
-type C struct {
-	Title string `datastore:"" json:"title"`
-	// Body  Body   `datastore:"-" json:"body"`
-}
-
-/* type Body struct {
-	Header  Header  `datastore:"-" json:"header"`
-	Nav     Nav     `datastore:"-" json:"nav"`
-	Partial Partial `datastore:"-" json:"partial"`
-	Footer  Footer  `datastore:"-" json:"footer"`
-}
-
-type Header struct {
-	Logo      Logo      `datastore:"-" json:"logo"`
-	Links     Links     `datastore:"Links:"-" json:"links"`
-	Dropdowns Dropdowns `datastore:"Dropdowns:"-" json:"dropdowns"`
-}
-
-type Logo struct {
-	A   A   `datastore:"-" json:"a"`
-	Img Img `datastore:"-" json:"logo"`
-}
-
-type Img struct {
-	Src string `bson:"Img" json:"img"`
-	Alt string `bson:"Alt" json:"alt"`
-}
-
-type Footer struct {
-	// Should be created their own types in the future !!!!!!!!!!!!!!!!!!!!
-	SearchPlaceHolder []byte `datastore:"" json:"searchPlaceHolder"`
-	MenuButtonText    []byte `datastore:"" json:"menuButtonText"`
-} */
-
-type D struct {
-}
-
-/* func (p *page) save() error {
-	filename := p.Title + ".txt"
-	return ioutil.WriteFile(filename, p.Body, 0600)
-} */
-
-// GET PAGE CONTENTS FROM DATASTORE WITH USERS SELECTED LANGUAGE !!!!!!!!!!!!!!!!!!!!!!!!!!
-func Get(ctx context.Context, title string) (*Page, error) {
+// Use Key List method instead of this one.
+func Get(ctx context.Context, page string) (Contents, error) {
 	// filename := title + ".html"
 	//USE CURRENT WORKING DIRECTORY IN PATH !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// BECAUSE ioutil.ReadFile USES CALLAR PACKAGE'S DIRECTORY AS CURRENT WORKING
+	// BECAUSE ioutil.ReadFile USES CALLER PACKAGE'S DIRECTORY AS CURRENT WORKING
 	// DIRECTORY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	/* body, err := ioutil.ReadFile("../page/templates/" + filename)
 	if err != nil {
 		return nil, err
 	} */
-	// If page on memcache get from there, otherwise get from datastore.
-	p := new(Page)
-	pageItem, err := memcache.Get(ctx, title)
+	pc := new(PageContent)
+	c := new(Content)
+	var cs Contents
+	csItem, err := memcache.Get(ctx, page)
 	if err == memcache.ErrCacheMiss {
-		content := C{
-			Title: title,
+		qpc := datastore.NewQuery("PageContent").Filter("PageID =", page)
+		for it := qpc.Run(ctx); ; {
+			_, err = it.Next(pc)
+			if err == datastore.Done {
+				return cs, ErrDatastoreDoneContentID
+			}
+			if err != nil {
+				return nil, err
+			}
+			qc := datastore.NewQuery("Content").Filter("ContentID =", pc.ContentID)
+			it2 := qc.Run(ctx)
+			_, err = it2.Next(c)
+			if err != datastore.Done && err != nil {
+				return nil, err
+			}
+			if err == datastore.Done {
+				err = ErrDatastoreDoneContent
+			}
+			cs = append(cs, *c)
 		}
-		p.C = content
-		bs, err := json.Marshal(p)
+
+		bs, err := json.Marshal(cs)
 		if err != nil {
 			return nil, err
 		}
-		pageItem = &memcache.Item{
-			Key:   title,
+		csItem = &memcache.Item{
+			Key:   page,
 			Value: bs,
 		}
-		if err = memcache.Set(ctx, pageItem); err != nil {
+		if err = memcache.Set(ctx, csItem); err != nil {
 			return nil, err
 		}
 	} else {
-		err = json.Unmarshal(pageItem.Value, p)
+		err = json.Unmarshal(csItem.Value, &cs)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return p, nil
+	return cs, nil
 }

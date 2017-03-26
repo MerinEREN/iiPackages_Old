@@ -6,7 +6,8 @@ package apis
 
 // response represends api response body.
 type ResponseBody struct {
-	Data data `json:"data"`
+	Result      data   `json:"result"`
+	NextPageUrl string `json:"nextPageUrl"`
 }
 
 type data interface{}

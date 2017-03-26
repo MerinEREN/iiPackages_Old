@@ -1,7 +1,7 @@
 package template
 
 import (
-	"github.com/MerinEREN/iiPackages/page/content"
+	// "github.com/MerinEREN/iiPackages/page/content"
 	// usr "github.com/MerinEREN/iiPackages/user"
 	"html/template"
 	"log"
@@ -13,8 +13,8 @@ var (
 	// RenderIndex      = renderTemplate("index")
 )
 
-func RenderIndex(w http.ResponseWriter, pc *content.Page) {
-	err := html.Execute(w, pc)
+func RenderIndex(w http.ResponseWriter) {
+	err := html.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Fatalln(err)

@@ -25,6 +25,12 @@ import (
 	"time"
 )
 
+// Errors
+var (
+	ErrPutAccount  = errors.New("Error while putting account into the datastore.")
+	ErrFindAccount = errors.New("Error while getting account.")
+)
+
 /*
 Inside a package, any comment immediately preceding a top-level declaration serves as a
 doc comment for that declaration. Every exported (capitalized) name in a program should
@@ -64,15 +70,12 @@ func Create(ctx context.Context) (acc *Account, u *usr.User, uK *datastore.Key,
 		accKeyName = s[0] + strconv.Itoa(i)
 	}
 	acc = &Account{
-		Name:          accKeyName,
-		Photo:         "matrix.gif", // add here a generic avatar
-		CurrentStatus: "available",
-		AccountStatus: "online",
-		Registered:    time.Now(),
-		LastModified:  time.Now(),
+		ID: accKeyName, 
+		Registered:   time.Now(),
+		LastModified: time.Now(),
 	}
 	key = datastore.NewKey(ctx, "Account", accKeyName, 0, nil)
-	_, err = datastore.Put(ctx, key, acc)
+	key, err = datastore.Put(ctx, key, acc)
 	if err != nil {
 		return
 	}
@@ -102,8 +105,10 @@ func Get(ctx context.Context, k interface{}) (*Account, error) {
 		q := datastore.NewQuery("Account").Filter("KeyName =", v)
 		it := q.Run(ctx)
 		_, err = it.Next(acc)
+		acc.ID = v
 	case *datastore.Key:
 		err = datastore.Get(ctx, v, acc)
+		acc.ID = v.StringID()
 	}
 	if err == datastore.Done {
 		return acc, err

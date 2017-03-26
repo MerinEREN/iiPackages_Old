@@ -13,6 +13,7 @@ import (
 	"github.com/MerinEREN/iiPackages/account"
 	api "github.com/MerinEREN/iiPackages/apis"
 	"github.com/MerinEREN/iiPackages/cookie"
+	"github.com/MerinEREN/iiPackages/photo"
 	// "github.com/MerinEREN/iiPackages/page/content"
 	// "github.com/MerinEREN/iiPackages/page/template"
 	usr "github.com/MerinEREN/iiPackages/user"
@@ -50,15 +51,16 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 			loginURLs["LinkedIn"] = gURL
 			loginURLs["Twitter"] = gURL
 			loginURLs["Facebook"] = gURL
-			resBody.Data = loginURLs
+			resBody.Result = loginURLs
 			// Also send general statistics data.
 		} else {
 			acc := new(account.Account)
 			u := new(usr.User)
 			// Users own account page or not
-			// if accName, ok := reqBodyUm["data"]["acc"]; !ok {
+			// if ac.ID, ok := reqBodyUm["data"]["acc"]; !ok {
 			aKey := new(datastore.Key)
 			uKey := new(datastore.Key)
+			p := new(photo.Photo)
 			item, err := memcache.Get(ctx, "u")
 			if err == nil {
 				err = json.Unmarshal(item.Value, u)
@@ -103,6 +105,13 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 					http.Error(w, err.Error(),
 						http.StatusInternalServerError)
 					return
+				}
+				p, _, err = photo.Get(ctx, uKey)
+				if err != nil {
+					log.Printf("Path: %s, Error: %v\n",
+						r.URL.Path, err)
+				} else {
+					u.Photo = *p
 				}
 				bs, err = json.Marshal(u)
 				if err != nil {
@@ -223,6 +232,13 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 							r.URL.Path, err)
 					}
 				}
+				p, _, err = photo.Get(ctx, aKey)
+				if err != nil {
+					log.Printf("Path: %s, Error: %v\n",
+						r.URL.Path, err)
+				} else {
+					acc.Photo = *p
+				}
 				bs, err = json.Marshal(acc)
 				if err != nil {
 					log.Printf("Path: %s, Error: %v\n",
@@ -240,14 +256,14 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 			}
 			// If cookie present does nothing.
 			// So does not necessary to check.
-			err = cookie.Set(w, r, u.UUID)
+			err = cookie.Set(w, r, u.ID)
 			if err != nil {
 				log.Printf("Path: %s, Error: %v\n",
 					r.URL.Path, err)
 			}
 			/* } else {
 				// someone elses account
-				s, ok := accName.(string)
+				s, ok := ac.ID.(string)
 				if ok {
 					acc, err = account.Get(ctx, s)
 				} else {
@@ -257,8 +273,12 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 					return
 				}
 			} */
-			au := AccountUser{acc, u}
-			resBody.Data = au
+			var ua userAccount
+			ua.User = make(map[string]*usr.User)
+			ua.User[u.ID] = u
+			ua.Account = make(map[string]*account.Account)
+			ua.Account[acc.ID] = acc
+			resBody.Result = ua
 		}
 		/* t := &http.Transport{}
 		t.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))

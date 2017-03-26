@@ -1,93 +1,35 @@
 package account
 
 import (
-	"errors"
-	// "github.com/MerinEREN/iiPackages/user"
+	//"github.com/MerinEREN/iiPackages/user"
+	"github.com/MerinEREN/iiPackages/address"
+	"github.com/MerinEREN/iiPackages/photo"
+	"github.com/MerinEREN/iiPackages/rank"
+	"github.com/MerinEREN/iiPackages/score"
+	"google.golang.org/appengine/datastore"
 	"time"
-)
-
-// Errors
-var (
-	ErrPutAccount  = errors.New("Error while putting account into the datastore.")
-	ErrFindAccount = errors.New("Error while getting account.")
 )
 
 // type Accounts []Account
 
+// Hide name when sending.
 type Account struct {
-	Photo string `datastore: "" json:"photo"`
-	Name  string `datastore: "" json:"name"`
-	// Company       Company   `datastore: "-" json:"company"`
-	CurrentStatus string `datastore: "" json:"current_status"`
-	AccountStatus string `datastore: "" json:"account_status"`
-	About         string `datastore: "" json:"about"`
-	// Tags          Tags      `datastore: "-" json:"tags"`
-	// Ranks         Ranks     `datastore: "-" json:"ranks"`
-	// Cards         Cards     `datastore: "-" json:"card" valid:"creditCard"`
-	// Users        user.Users `datastore: "-" json:"users"`
-	Registered   time.Time `datastore: "" json:"registered"`
-	LastModified time.Time `datastore: "" json:"last_modified"`
+	ID           string            `datastore:"-"`
+	Photo        photo.Photo       `datastore:"-" json:"photo"`
+	Name         string            `json:"name"`
+	Addresses    address.Addresses `json:"addresses"`
+	Status       string            `json:"status"`
+	About        string            `json:"about"`
+	Score        score.Score       `datastore:"-" json:"score"`
+	Registered   time.Time         `json:"registered"`
+	LastModified time.Time         `json:"lastModified"`
+	RankIDs      []*datastore.Key  `json:"rankIDs"`
+	Ranks        rank.Ranks        `datastore:"-" json:"ranks"`
+	BankAccounts []BankAccount     `json:"bankAccount" valid:"bankAccount"`
 }
 
-type Company struct {
-	Name string `datastore: "" json:"name"`
-	Type string `datastore: "" json:"type"`
-	// Addresses Addresses `datastore: "-" json:"addresses"`
-}
-
-// type Addresses []Address
-
-type Address struct {
-	Description string      `datastore: "" json:"description"`
-	Borough     string      `datastore: "" json:"borough"`
-	City        string      `datastore: "" json:"city"`
-	Country     string      `datastore: "" json:"country"`
-	Postcode    string      `datastore: "" json:"postcode"`
-	Geolocation Geolocation `datastore: "" json:"geolocation"`
-}
-
-type Geolocation struct {
-	Lat  string `datastore: "" json:"lat"`  // type could be differnt !!!
-	Long string `datastore: "" json:"Long"` // type could be differnt !!!
-}
-
-// type Tags []Tag
-
-type Tag struct {
-	ID     string            `datastore: "" json:"id"`
-	Values map[string]string `datastore: "" json:"values"`
-}
-
-// type Ranks []Rank
-
-type Rank struct {
-	ID     string            `datastore: "" json:"id"`
-	Values map[string]string `datastore: "" json:"values"`
-}
-
-// type Cards struct {
-// CreditCards CreditCards `datastore: "" json:"creditCards"`
-// DebitCards  DebitCards  `datastore: "" json:"debitCards"`
-// }
-
-// type CreditCards []CreditCard
-
-type CreditCard struct {
-	HolderName string `datastore: "" json:"holder_name"`
-	No         string `datastore: "" json:"no"`
-	ExpMonth   string `datastore: "" json:"exp_month"`
-	ExpYear    string `datastore: "" json:"exp_year"`
-	CVV        string `datastore: "" json:"cvv"`
-}
-
-// type DebitCards []DebitCard
-
-type DebitCard struct {
-	HolderName string `datastore: "" json:"holder_name"`
-	No         string `datastore: "" json:"no"`
-	ExpMonth   string `datastore: "" json:"exp_month"`
-	ExpYear    string `datastore: "" json:"exp_year"`
-	CVV        string `datastore: "" json:"cvv"`
+type BankAccount struct {
+	IMEI string `json:"IMEI"`
 }
 
 type Entity interface {

@@ -196,7 +196,7 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 			Account *account.Account `json:"account"`
 			Users   *usr.Users       `json:"user"`
 		}{acc, nil}
-		wb.Data = au
+		wb.Result = au
 	case "POST":
 		// Handle POST requests
 	}

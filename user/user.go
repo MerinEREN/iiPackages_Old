@@ -20,7 +20,18 @@ import (
 	// "io"
 	// "log"
 	// "net/http"
+	"errors"
 	"time"
+)
+
+// Errors
+var (
+	ErrEmailNotExist   = errors.New("Email Not Exist")
+	ErrInvalidEmail    = errors.New("Invalid Email")
+	ErrInvalidPassword = errors.New("Invalid Password")
+	ErrPutUser         = errors.New("Error while putting user into the datastore.")
+	ErrFindUser        = errors.New("Error while checking email existincy.")
+	// ErrExistingEmail   = errors.New("Existing Email")
 )
 
 func (u *User) IsAdmin() bool {
@@ -54,17 +65,15 @@ func New(ctx context.Context, parentKey *datastore.Key, email, role string) (u *
 		}
 		UUID := u4.String()
 		u = &User{
-			UUID:  UUID,
+			ID:    UUID,
 			Email: email,
-			// Password:     GetHmac(password),
 			Roles:        roles,
-			Photo:        "adele.jpg",
-			Status:       "online",
 			IsActive:     true,
 			Registered:   time.Now(),
 			LastModified: time.Now(),
+			// Password:     GetHmac(password),
 		}
-		key = datastore.NewKey(ctx, "User", u.UUID, 0, parentKey)
+		key = datastore.NewKey(ctx, "User", UUID, 0, parentKey)
 		_, err = datastore.Put(ctx, key, u)
 		if err != nil {
 			return
@@ -80,12 +89,13 @@ func Get(ctx context.Context, email string) (*User, *datastore.Key, error) {
 	// BUG !!!!! If i made this function as naked return "it.Next" fails because of "u"
 	k, err := it.Next(u)
 	if err == datastore.Done {
-		return u, k, err
+		return nil, nil, err
 	}
 	if err != nil {
 		err = ErrFindUser
 		return nil, nil, err
 	}
+	u.ID = k.StringID()
 	return u, k, nil
 }
 
