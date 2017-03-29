@@ -70,7 +70,7 @@ func Create(ctx context.Context) (acc *Account, u *usr.User, uK *datastore.Key,
 		accKeyName = s[0] + strconv.Itoa(i)
 	}
 	acc = &Account{
-		ID: accKeyName, 
+		ID:           accKeyName,
 		Registered:   time.Now(),
 		LastModified: time.Now(),
 	}

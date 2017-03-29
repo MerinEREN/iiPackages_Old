@@ -138,6 +138,10 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 					log.Printf("Path: %s, Error: %v\n",
 						r.URL.Path, err)
 				}
+				// Get all user's keys (use go routins) who have same tags
+				// And put them to the memcache.
+				// Than use those keys to get demands, offers, photos,
+				// videos...
 			}
 			item, err = memcache.Get(ctx, "acc")
 			if err == nil {
@@ -256,7 +260,7 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 			}
 			// If cookie present does nothing.
 			// So does not necessary to check.
-			err = cookie.Set(w, r, u.ID)
+			err = cookie.Set(w, r, "session", u.ID)
 			if err != nil {
 				log.Printf("Path: %s, Error: %v\n",
 					r.URL.Path, err)
@@ -291,8 +295,7 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 		//w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		bs, err := json.Marshal(*resBody)
 		if err != nil {
-			log.Printf("Path: %s, Error: %v\n",
-				r.URL.Path, err)
+			log.Printf("Path: %s, Error: %v\n", r.URL.Path, err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -25,20 +25,18 @@ type SessionData struct {
 }
 
 // Adding uuid and hash to the cookie and check hash code
-func Set(w http.ResponseWriter, r *http.Request, uuid string) error {
+func Set(w http.ResponseWriter, r *http.Request, name, value string) error {
 	// COOKIE IS A PART OF THE HEADER, SO U SHOULD SET THE COOKIE BEFORE EXECUTING A
 	// TEMPLATE OR WRITING SOMETHING TO THE BODY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	cName := "cookie:" + r.URL.Path
-	c, err := r.Cookie(cName)
+	c, err := r.Cookie(name)
 	if err == http.ErrNoCookie {
-		c, err = create(cName, uuid)
+		c, err = create(name, value)
 		http.SetCookie(w, c)
-		log.Printf("Name: %v, Cookie: %v, Error: %v\n", cName, c, err)
 	} else {
 		if isUserDataChanged(c) {
 			// DELETING CORRUPTED COOKIE AND CREATING NEW ONE !!!!!!!!!!!!!!!!!
-			Delete(w, r)
-			c, _ = create(r.URL.Path, uuid)
+			Delete(w, r, name)
+			c, _ = create(name, value)
 			http.SetCookie(w, c)
 			err = ErrCorruptedCookie
 		}
@@ -46,11 +44,11 @@ func Set(w http.ResponseWriter, r *http.Request, uuid string) error {
 	return err
 }
 
-func create(p, uuid string) (c *http.Cookie, err error) {
+func create(n, v string) (c *http.Cookie, err error) {
 	c = &http.Cookie{
-		Name: p,
+		Name: n,
 		// U CAN USE UUID AS VALUE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		Value: uuid,
+		Value: v,
 		// NOT GOOD PRACTICE
 		// ADDING USER DATA TO A COOKIE
 		// WITH NO WAY OF KNOWING WHETER OR NOT THEY MIGHT HAVE ALTERED
@@ -66,11 +64,12 @@ func create(p, uuid string) (c *http.Cookie, err error) {
 		HttpOnly: false,
 	}
 	err = setValue(c)
+	// log.Printf("Cookie is: %v. Error is: %v.", c, err)
 	return
 }
 
-func Delete(w http.ResponseWriter, r *http.Request) error {
-	c, err := r.Cookie(r.URL.Path)
+func Delete(w http.ResponseWriter, r *http.Request, n string) error {
+	c, err := r.Cookie(n)
 	if err == http.ErrNoCookie {
 		return err
 	}
@@ -119,8 +118,8 @@ func isUserDataChanged(c *http.Cookie) bool {
 }
 
 // MAKE GENERIC RETURN TYPE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-func GetData(r *http.Request) (*SessionData, error) {
-	c, err := r.Cookie(r.URL.Path)
+func GetData(r *http.Request, n string) (*SessionData, error) {
+	c, err := r.Cookie(n)
 	if err == http.ErrNoCookie {
 		return &SessionData{}, err
 	}

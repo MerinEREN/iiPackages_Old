@@ -14,6 +14,7 @@ import (
 	// "github.com/MerinEREN/iiPackages/cookie"
 	// "github.com/MerinEREN/iiPackages/role"
 	// valid "github.com/asaskevich/govalidator"
+	"github.com/MerinEREN/iiPackages/tag"
 	"github.com/nu7hatch/gouuid"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
@@ -65,8 +66,8 @@ func New(ctx context.Context, parentKey *datastore.Key, email, role string) (u *
 		}
 		UUID := u4.String()
 		u = &User{
-			ID:    UUID,
-			Email: email,
+			ID:           UUID,
+			Email:        email,
 			Roles:        roles,
 			IsActive:     true,
 			Registered:   time.Now(),
@@ -116,4 +117,19 @@ func GetKey(ctx context.Context, email string) (k *datastore.Key, err error) {
 func Exist(ctx context.Context, email string) (c int, err error) {
 	c, err = datastore.NewQuery("User").Filter("Email =", email).Count(ctx)
 	return
+}
+
+func GetTags(ctx context.Context, email string) (tag.Tags, error) {
+	u := new(User)
+	q := datastore.NewQuery("User").Filter("Email =", email).Project("Tags")
+	it := q.Run(ctx)
+	_, err := it.Next(u)
+	if err == datastore.Done {
+		return nil, err
+	}
+	if err != nil {
+		err = ErrFindUser
+		return nil, err
+	}
+	return u.Tags, nil
 }

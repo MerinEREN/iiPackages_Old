@@ -20,7 +20,7 @@ a comment can often be perfunctory.
 type User struct {
 	ID                string           `datastore:"-"`
 	Email             string           `json:"email"`
-	Photo             photo.Photo      `datastore: "-" json:"photo"`
+	Photo             photo.Photo      `datastore:"-" json:"photo"`
 	Name              Name             `datastore: ",noindex" json:"name"`
 	Gender            string           `json:"gender"`
 	Status            string           `json:"status"`

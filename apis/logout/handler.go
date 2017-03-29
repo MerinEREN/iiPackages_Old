@@ -36,7 +36,7 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, ug *us
 		return
 	}
 	// Deleting session cookie
-	if err = cookie.Delete(w, r); err != nil {
+	if err = cookie.Delete(w, r, "session"); err != nil {
 		log.Printf("Path: %s. Error: %v\n", r.URL.Path, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
